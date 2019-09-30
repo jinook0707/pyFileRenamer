@@ -251,6 +251,9 @@ def updateFrameSize(wxFrame, w_sz):
 
 class FileRenamerFrame(wx.Frame):
     """ Frame for FileRenamer
+
+    Attributes:
+        Each attribute is commented in 'setting up attributes' section.
     """
 
     def __init__(self):
