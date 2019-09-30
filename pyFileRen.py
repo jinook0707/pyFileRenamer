@@ -38,7 +38,7 @@ from glob import glob
 from math import ceil
 from datetime import datetime
 
-import wx
+import wx, wx.richtext
 import wx.lib.scrolledpanel as SPanel 
 import wx.lib.agw.multidirdialog as MDD
 
@@ -298,13 +298,13 @@ class FileRenamerFrame(wx.Frame):
                             incNumInFolder = 'Increasing Number (in each folder)',
                             ts = 'Timestamp',
                             ) # new file format options - description
-        self.logFile = "log_%s.txt"%(get_time_stamp()[:10])
+        self.logFile = "log_pyFileRen.txt"
         ##### end of setting up attributes -----  
-
+        
+        logHeader = "Timestamp, Origianl file, Renamed file\n"
+        logHeader += "----------------------------------------\n"
         if not path.isfile(self.logFile): # log file doesn't exist
-            self.logHeader = "Timestamp, Origianl file, Renamed file\n"
-            self.logHeader += "----------------------------------------\n"
-            writeFile(self.logFile, self.logHeader) # write header
+            writeFile(self.logFile, logHeader) # write header
 
         ### create panels
         for pk in pi.keys():
@@ -464,7 +464,7 @@ class FileRenamerFrame(wx.Frame):
                             -1, 
                             value="[EMPTY]; Please select folders",
                             name="selDir_txt",
-                            size=(int(mpSz[0]*0.95), int(mpSz[1]*0.15)),
+                            size=(int(mpSz[0]*0.95), int(mpSz[1]*0.2)),
                             style=wx.TE_MULTILINE|wx.TE_READONLY,
                          )
         txt.SetBackgroundColour('#999999')
@@ -541,14 +541,13 @@ class FileRenamerFrame(wx.Frame):
                             border=bw,
                            )
         row += 1
-        txt = wx.TextCtrl(
+        txt = wx.richtext.RichTextCtrl(
                             self.panel["mp"], 
                             -1, 
-                            value="",
                             name="selFile_txt",
-                            size=(int(mpSz[0]*0.95), int(mpSz[1]*0.3)),
+                            size=(int(mpSz[0]*0.95), int(mpSz[1]*0.4)),
                             style=wx.TE_MULTILINE|wx.TE_READONLY,
-                         )
+                         ) # selected files to be renamed
         txt.SetBackgroundColour('#999999')
         self.gbs["mp"].Add(
                             txt, 
@@ -614,46 +613,6 @@ class FileRenamerFrame(wx.Frame):
         cho.Bind(wx.EVT_CHOICE, self.onChoice)
         self.gbs["mp"].Add(
                             cho, 
-                            pos=(row,col), 
-                            flag=wx.ALIGN_CENTER_VERTICAL|wx.ALL, 
-                            border=bw,
-                           )
-        row += 1
-        self.gbs["mp"].Add(
-                            wx.StaticLine(
-                                            self.panel["mp"],
-                                            -1,
-                                            size=hlSz,
-                                            style=wx.LI_HORIZONTAL,
-                                         ),
-                            pos=(row,col), 
-                            flag=wx.ALIGN_CENTER_VERTICAL|wx.ALL, 
-                            border=bw,
-                          ) # horizontal line separator
-        row += 1
-        sTxt = setupStaticText(
-                            self.panel["mp"], 
-                            "Renaming results", 
-                            font=self.fonts[2],
-                              )
-        self.gbs["mp"].Add(
-                            sTxt, 
-                            pos=(row,col), 
-                            flag=wx.ALIGN_CENTER_VERTICAL|wx.ALL, 
-                            border=bw,
-                           )
-        row += 1
-        txt = wx.TextCtrl(
-                            self.panel["mp"], 
-                            -1, 
-                            value="",
-                            name="rslt_txt",
-                            size=(int(mpSz[0]*0.95), int(mpSz[1]*0.6)),
-                            style=wx.TE_MULTILINE|wx.TE_READONLY,
-                         )
-        txt.SetBackgroundColour('#999999')
-        self.gbs["mp"].Add(
-                            txt, 
                             pos=(row,col), 
                             flag=wx.ALIGN_CENTER_VERTICAL|wx.ALL, 
                             border=bw,
@@ -802,17 +761,16 @@ class FileRenamerFrame(wx.Frame):
             dlg.Destroy()
         
         elif objName == "run_btn":
-            msg4log = copy(self.logHeader) # log message
-            msg4tc = "" # message to show results in UI 
+            msg = "Renamed files -----\n\n" # result message 
+            msg4log = "" # log message
             for i, fp in enumerate(self.fileList):
                 newFP = self.nFileList[i]
                 rename(fp, newFP) # rename file
                 msg4log += "%s, %s, %s\n\n"%(get_time_stamp(), fp, newFP)
-                msg4tc += "%s\n---[renamed to]--->> %s\n\n"%(fp, newFP)
+                msg += "%s\n\n"%(newFP)
             writeFile(self.logFile, msg4log) # logging results
-            tc = wx.FindWindowByName("rslt_txt", self.panel["mp"])
-            tc.SetValue(msg4tc) # show the message on UI
-            print(msg4tc)
+            self.initList() # clear all file lists
+            wx.MessageBox(msg, 'Results', wx.OK)
 
     #-------------------------------------------------------------------
     
@@ -929,7 +887,7 @@ class FileRenamerFrame(wx.Frame):
         self.fileList = fL
 
         ### update TextCtrl to show files to be renamed
-        self.nFileList = [] 
+        self.nFileList = [] # new file path list 
         tcNew = wx.FindWindowByName("newFN_txt", self.panel["mp"])
         newForm = tcNew.GetValue() # new file format
         _txt = ""
@@ -937,9 +895,17 @@ class FileRenamerFrame(wx.Frame):
         zeroPadN = len(str(len(self.fileList)))
         folderPath = ""
         prevFolderP = ""
+        tc = wx.FindWindowByName("selFile_txt", self.panel["mp"])
+        tc.SetValue("") # delete the current contents
         for i, fp in enumerate(self.fileList):
-            _txt += fp + "\n --->> "
             bn = path.basename(fp)
+            _fp = fp.replace(bn, "")
+            tc.WriteText(_fp)
+            tc.BeginTextColour('#cccccc')
+            tc.WriteText(bn)
+            tc.EndTextColour()
+            tc.Newline()
+            tc.WriteText(" --->> ")
             folderPath = fp.replace(bn, "")
             if i == 0: prevFolderP = copy(folderPath)
             fn = bn.split('.')
@@ -975,12 +941,37 @@ class FileRenamerFrame(wx.Frame):
                 newFP = path.join(self.folder2moveRenFile, "%s.%s"%(newFN, oFExt))
             else:
                 newFP = path.join(folderPath, "%s.%s"%(newFN, oFExt))
-            self.nFileList.append(newFP) 
-            _txt += newFP # put new file-name
-            _txt += "\n\n"
+            self.nFileList.append(newFP) # store the new file-path
+            newFN = path.basename(newFP)
+            newFP = newFP.replace(newFN, "")
+            tc.WriteText(newFP) # write file-path
+            tc.BeginTextColour('#aa0000')
+            tc.WriteText(newFN) # write new file-name
+            tc.EndTextColour()
+            for x in range(2): tc.Newline()
             prevFolderP = copy(folderPath)
-        tc = wx.FindWindowByName("selFile_txt", self.panel["mp"])
-        tc.SetValue(_txt)
+    
+    #-------------------------------------------------------------------
+   
+    def initList(self):
+        """ Clear all the lists (after renaming)
+
+        Args: None
+
+        Returns: None
+        """
+        if DEBUG: print("FileRenamerFrame.initList()")
+        self.selectedFolders = [] # list of selected folders
+        self.fileList = [] # file list to be renamed
+        self.nFileList = [] # file list with new file names
+        txt = wx.FindWindowByName("selDir_txt", self.panel["mp"])
+        txt.SetValue("")
+        txt = wx.FindWindowByName("targetFN_txt", self.panel["mp"])
+        txt.SetValue("*.*")
+        txt = wx.FindWindowByName("selFile_txt", self.panel["mp"])
+        txt.SetValue("")
+        txt = wx.FindWindowByName("newFN_txt", self.panel["mp"])
+        txt.SetValue("[oFileN]")
     
     #-------------------------------------------------------------------
 
