@@ -282,7 +282,6 @@ class FileRenamerFrame(wx.Frame):
         self.pi = pi # pnael information
         self.gbs = {} # for GridBagSizer
         self.panel = {} # panels
-        self.timers = {} # timers
         self.selectedFolders = [] # list of selected folders
         self.folder2moveRenFile = "" # folder to move renamed files
         self.fileList = [] # file list to be renamed
@@ -655,11 +654,6 @@ class FileRenamerFrame(wx.Frame):
                                         ]) 
         self.SetAcceleratorTable(accel_tbl)
 
-        ### set up status-bar
-        self.statusbar = self.CreateStatusBar(1)
-        self.sbBgCol = self.statusbar.GetBackgroundColour()
-        self.timers["sbTimer"] = None 
-
         updateFrameSize(self, w_sz)
 
         self.Bind(wx.EVT_MENU, self.onClose, quit)
@@ -986,10 +980,7 @@ class FileRenamerFrame(wx.Frame):
         Returns: None
         """
         if DEBUG: print("FileRenamerFrame.onClose()")
-
-        for k in self.timers.keys():
-            if isinstance(self.timers[k], wx.Timer):
-                self.timers[k].Stop()
+        
         self.Destroy()
 
     #-------------------------------------------------------------------
