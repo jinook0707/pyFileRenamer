@@ -489,7 +489,7 @@ class FileRenamerFrame(wx.Frame):
                             border=bw,
                           ) # horizontal line separator
         row += 1
-        lbl = "Target files (you can use wildcard characters)."
+        lbl = "Target files (you can use wildcard characters)"
         sTxt = setupStaticText(
                             self.panel["mp"], 
                             lbl, 
@@ -533,7 +533,7 @@ class FileRenamerFrame(wx.Frame):
         row += 1
         sTxt = setupStaticText(
                             self.panel["mp"], 
-                            "List of files to be renamed.", 
+                            "List of files to be renamed", 
                             font=self.fonts[2],
                               )
         self.gbs["mp"].Add(
@@ -570,7 +570,7 @@ class FileRenamerFrame(wx.Frame):
                             border=bw,
                           ) # horizontal line separator
         row += 1
-        lbl = "New file-name format. (Don't put extension here."
+        lbl = "New file-name format (Don't put extension here."
         lbl += " It will be same as original file extension.)"
         sTxt = setupStaticText(
                             self.panel["mp"], 
@@ -715,14 +715,16 @@ class FileRenamerFrame(wx.Frame):
                                     ) # select multiple folders
             if dlg.ShowModal() == wx.ID_OK:
                 self.selectedFolders = dlg.GetPaths()
-                ### remove root string, due to MultiDirDialog's some return string 
-                for i, fp in enumerate(self.selectedFolders):
-                    si = fp.find("/")
-                    if si != -1:
-                        fp = fp[fp.index("/"):] # cut off the fisrt directory name,
-                          # MultiDirDialog returns with disk name as root
-                          # Instead of '/tmp', it returns 'Macintosh HD/tmp'.
-                    self.selectedFolders[i] = fp 
+                if sys.platform == 'darwin': # OS X
+                    ### remove root string
+                    for i, fp in enumerate(self.selectedFolders):
+                        si = fp.find("/")
+                        if si != -1:
+                            fp = fp[fp.index("/"):] # cut off the fisrt directory name,
+                              # MultiDirDialog returns with disk name as root
+                              # Instead of '/tmp', 
+                              # it returns 'Macintosh HD/tmp'.
+                        self.selectedFolders[i] = fp 
 
                 ### include sub folder, if "including sub folder" option was checked.
                 sfChk = wx.FindWindowByName("subFolders_chk", self.panel["tUI"])
@@ -731,9 +733,9 @@ class FileRenamerFrame(wx.Frame):
                     folderL = copy(self.selectedFolders)
                     self.selectedFolders = []
                     for dp in folderL:
-                    # go through folder which use selected
+                    # go through selected folders
                         self.selectedFolders.append(dp) # append the selected folder
-                        self.addFolders(dp) # add folders in this folder
+                        self.addFolders(dp) # add sub-folders in this folder
 
                 ### show folder list in UI
                 selDir_txt = wx.FindWindowByName("selDir_txt", 
@@ -887,7 +889,6 @@ class FileRenamerFrame(wx.Frame):
         self.nFileList = [] # new file path list 
         tcNew = wx.FindWindowByName("newFN_txt", self.panel["mp"])
         newForm = tcNew.GetValue() # new file format
-        _txt = ""
         incN = 1 
         zeroPadN = len(str(len(self.fileList)))
         folderPath = ""
