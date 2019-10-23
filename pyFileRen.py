@@ -38,7 +38,7 @@ from glob import glob
 from math import ceil
 from datetime import datetime
 
-import wx, wx.richtext
+import wx, wx.richtext, wx.adv
 import wx.lib.scrolledpanel as SPanel 
 import wx.lib.agw.multidirdialog as MDD
 
@@ -273,6 +273,11 @@ class FileRenamerFrame(wx.Frame):
               style=wx.DEFAULT_FRAME_STYLE^(wx.RESIZE_BORDER|wx.MAXIMIZE_BOX),
                          ) 
         self.SetBackgroundColour('#333333')
+
+        ### set app icon
+        self.tbIcon = wx.adv.TaskBarIcon(iconType=wx.adv.TBI_DOCK)
+        icon = wx.Icon("icon.ico")
+        self.tbIcon.SetIcon(icon)
 
         ##### beginning of setting up attributes ----- 
         self.w_pos = w_pos
