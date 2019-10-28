@@ -661,7 +661,7 @@ class FileRenamerFrame(wx.Frame):
 
         updateFrameSize(self, w_sz)
 
-        self.Bind(wx.EVT_MENU, self.onClose, quit)
+        self.Bind(wx.EVT_CLOSE, self.onClose)
 
     #-------------------------------------------------------------------
 
