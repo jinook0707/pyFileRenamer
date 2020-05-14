@@ -9,4 +9,5 @@ Contact: jinook0707@gmail.com, tecumseh.fitch@univie.ac.at<br>
 September 2019.
 
 ## Dependency:
+- **Python** (3.7)
 - **wxPython** (4.0)
